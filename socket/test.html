@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Socket Test</title>
+    <!-- localhost-லயே socket.io load ஆகும் -->
+    <script src="http://localhost:4000/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <h2>Socket.io Test 🚀</h2>
+    
+    <input id="meetingId" placeholder="Meeting ID" value="meeting123" />
+    <input id="userId" placeholder="User ID" value="user1" />
+    <button onclick="joinMeeting()">Join Meeting</button>
+    <button onclick="leaveMeeting()">Leave Meeting</button>
+    
+    <br/><br/>
+    
+    <input id="message" placeholder="Type message..." />
+    <button onclick="sendMessage()">Send</button>
+    
+    <br/><br/>
+    
+    <h3>Events Log:</h3>
+    <div id="log" style="border:1px solid black; 
+    padding:10px; height:200px; overflow-y:scroll;"></div>
+
+    <script>
+        // localhost:4000 connect பண்ணும்
+        const socket = io("http://localhost:4000");
+        
+        function log(msg) {
+            const div = document.getElementById("log");
+            div.innerHTML += `<p>${msg}</p>`;
+        }
+
+        socket.on("connect", () => {
+            log("✅ Connected: " + socket.id);
+        });
+
+        function joinMeeting() {
+            const meetingId = document.getElementById("meetingId").value;
+            const userId = document.getElementById("userId").value;
+            socket.emit("join-meeting", { meetingId, userId });
+            log(`📌 Joined: ${meetingId}`);
+        }
+
+        function leaveMeeting() {
+            const meetingId = document.getElementById("meetingId").value;
+            const userId = document.getElementById("userId").value;
+            socket.emit("leave-meeting", { meetingId, userId });
+            log(`🚪 Left: ${meetingId}`);
+        }
+
+        function sendMessage() {
+            const meetingId = document.getElementById("meetingId").value;
+            const userId = document.getElementById("userId").value;
+            const message = document.getElementById("message").value;
+            socket.emit("send-message", { meetingId, message, sender: userId });
+            log(`💬 Sent: ${message}`);
+        }
+
+        socket.on("user-joined", ({ userId }) => {
+            log(`🟢 ${userId} joined!`);
+        });
+
+        socket.on("user-left", ({ userId }) => {
+            log(`🔴 ${userId} left!`);
+        });
+
+        socket.on("receive-message", ({ message, sender, time }) => {
+            log(`💬 ${sender} (${time}): ${message}`);
+        });
+    </script>
+</body>
+</html>
